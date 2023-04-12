@@ -1,24 +1,33 @@
 {
-  "name": "Google Slides Screenshot to PDF",
-  "version": "1.0",
-  "manifest_version": 2,
-  "description": "Take screenshots of Google Slides and convert them into a PDF",
-  "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
-  },
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "storage",
-    "scripting",
-    "contextMenus"
-  ],
-  "content_scripts": [
-    {
-      "matches": ["https://docs.google.com/presentation/*"],
-      "js": ["content.js"]
+    "manifest_version": 2,
+    "name": "Google Slides to PDF",
+    "version": "1.0",
+    "description": "Converts Google Slides to PDF",
+
+    "icons": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+    },
+
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "contextMenus",
+        "<all_urls>"
+    ],
+
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    },
+
+    "browser_action": {
+        "default_icon": {
+            "16": "icon16.png",
+            "48": "icon48.png",
+            "128": "icon128.png"
+        },
+        "default_title": "Convert Google Slides to PDF"
     }
-  ]
 }
