@@ -20,3 +20,47 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     chrome.tabs.sendMessage(sender.tab.id, {action: "convertToPdf", slides: request.slides});
   }
 });
+
+// Listen for message from background script
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action == "takeScreenshot") {
+    // Find the number of slides
+    var numSlides = document.querySelectorAll('.punch-filmstrip-thumbnail').length;
+    
+    // Set the width and height of the browser window
+    var width = Math.max(document.body.scrollWidth, document.body.offsetWidth, document.documentElement.clientWidth, document.documentElement.scrollWidth, document.documentElement.offsetWidth);
+    var height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
+    window.resizeTo(width, height);
+    
+    // Take a screenshot of each slide
+    var screenshots = [];
+    for (var i = 1; i <= numSlides; i++) {
+      // Scroll to the slide
+      document.querySelector(`#punch-slide-thumbnail-${i}`).scrollIntoView();
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for slide to load
+      // Take a screenshot of the slide
+      var screenshot = await chrome.scripting.executeScript({
+        target: {tabId: sender.tab.id},
+        function: function() {
+          return new Promise(resolve => {
+            chrome.runtime.sendMessage({action: "captureScreenshot"}, function(response) {
+              resolve(response.dataUrl);
+            });
+          });
+        }
+      });
+      screenshots.push(screenshot[0].result);
+    }
+    
+    // Send message to background script to convert screenshots to PDF
+    chrome.runtime.sendMessage({action: "convertToPdf", slides: screenshots});
+  }
+});
+
+// Listen for message from background script to convert screenshots to PDF
+chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {
+  if (request.action == "convertToPdf") {
+    var pdf = new jsPDF();
+    var numSlides = request.slides.length;
+    for (var i = 0; i < numSlides; i++) {
+      var img
