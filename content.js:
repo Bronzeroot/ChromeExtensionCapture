@@ -1,0 +1,22 @@
+// Create context menu item
+chrome.contextMenus.create({
+  "id": "takeScreenshot",
+  "title": "Take Screenshot of Slides",
+  "contexts": ["all"]
+});
+
+// Listen for context menu item click event
+chrome.contextMenus.onClicked.addListener(function(info, tab) {
+  if (info.menuItemId == "takeScreenshot") {
+    // Send message to content script to take screenshots
+    chrome.tabs.sendMessage(tab.id, {action: "takeScreenshot"});
+  }
+});
+
+// Listen for messages from the extension popup
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action == "convertToPdf") {
+    // Send message to content script to convert screenshots to PDF
+    chrome.tabs.sendMessage(sender.tab.id, {action: "convertToPdf", slides: request.slides});
+  }
+});
